@@ -1,6 +1,6 @@
 name: Instagram Profile Test
 
-on:
+"on":
   workflow_dispatch:
 
 jobs:
