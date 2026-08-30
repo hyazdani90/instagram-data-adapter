@@ -1,71 +1,59 @@
-import requests
-import re
+name: Instagram Profile Test
 
-username = "shila.fastfood"
+on:
+  workflow_dispatch:
 
-url = f"https://www.instagram.com/{username}/"
+jobs:
+  test:
+    runs-on: ubuntu-latest
 
-headers = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/151.0.0.0 Safari/537.36"
-    ),
-    "Accept-Language": "en-US,en;q=0.9",
-}
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-response = requests.get(
-    url,
-    headers=headers,
-    timeout=30
-)
+      - name: Install requests
+        run: |
+          pip install requests
 
-html = response.text
+      - name: Test Instagram
+        run: |
+          python - <<'PY'
+          import requests
 
-print("STATUS:", response.status_code)
-print("SIZE:", len(html))
+          username = "shila.fastfood"
 
+          url = f"https://www.instagram.com/{username}/"
 
-keys = [
-    "__bbox",
-    "server_payload",
-    "profile_pic_url",
-    "followers_count",
-    "follower_count",
-    "following_count",
-    "biography",
-    "profilePage",
-    "user",
-    "username",
-    "PolarisViewer"
-]
+          headers = {
+              "User-Agent": "Mozilla/5.0"
+          }
 
+          r = requests.get(
+              url,
+              headers=headers,
+              timeout=30
+          )
 
-print("\n===== KEY SEARCH =====")
+          print("STATUS:", r.status_code)
+          print("SIZE:", len(r.text))
 
-for key in keys:
-    count = html.lower().count(key.lower())
-    print(key, ":", count)
+          html = r.text
 
+          keys = [
+              "__bbox",
+              "server_payload",
+              "profile_pic_url",
+              "followers_count",
+              "biography",
+              "username",
+              "PolarisViewer"
+          ]
 
-print("\n===== JSON SCRIPT BLOCKS =====")
+          print("===== KEY SEARCH =====")
 
-blocks = re.findall(
-    r'<script[^>]*>(.*?)</script>',
-    html,
-    re.DOTALL
-)
+          for key in keys:
+              print(key, ":", html.lower().count(key.lower()))
 
-print("SCRIPT COUNT:", len(blocks))
-
-for i, block in enumerate(blocks):
-
-    if any(k.lower() in block.lower() for k in [
-        "followers_count",
-        "biography",
-        "profile_pic_url",
-        "follower_count"
-    ]):
-
-        print("\nFOUND BLOCK:", i)
-        print(block[:3000])
+          PY
